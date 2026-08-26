@@ -20,7 +20,7 @@ import io.cucumber.junit.CucumberOptions;
 				"pretty",
 			
 				 "stepDefination.ThenStepScreenshotListener",
-				 "html:target/cucumber-reports", 
+				 "html:target/cucumber-reports.html", 
 				 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
 				
 
