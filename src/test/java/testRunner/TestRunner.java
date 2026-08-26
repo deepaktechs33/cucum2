@@ -5,11 +5,11 @@ import io.cucumber.junit.CucumberOptions;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-		features ="classpath:features/footer.feature",
+		//features ="classpath:features/footer.feature",
 		//features = "classpath:features/addremovecart.feature",
         //features = "classpath:features/login.feature",
 		// features = "classpath:features/hamberger.feature",
-		//features = "classpath:features/sort.feature",
+		features = "classpath:features/sort.feature",
 		//features = "classpath:features/endtoendflow.feature",
 
 	//	features = "src/test/resources/features",						
@@ -18,7 +18,9 @@ import io.cucumber.junit.CucumberOptions;
 		glue = { "stepDefination" },
 		plugin = {
 				"pretty",
-				"html:target/cucumber-reports/cucumber.html",
+			
+				 "stepDefination.ThenStepScreenshotListener",
+				 "html:target/cucumber-reports", 
 				 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
 				
 
