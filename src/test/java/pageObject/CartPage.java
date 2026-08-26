@@ -28,59 +28,68 @@ public class CartPage extends BasePage {
     }
 
     public void clickCheckout() {
-        wait.until(ExpectedConditions.elementToBeClickable(btnCheckout)).click();
-        wait.until(ExpectedConditions.urlContains("checkout-step-one.html"));
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(btnCheckout)).click();
+            wait.until(ExpectedConditions.urlContains("checkout-step-one.html"));
+        } catch (org.openqa.selenium.TimeoutException firstAttemptFailed) {
+            // Mirrors removeProductFromCart()'s retry pattern: the native click
+            // sometimes doesn't register (event listener timing / overlay),
+            // so fall back to a JS click on a freshly located element.
+            WebElement retryBtn = wait.until(ExpectedConditions.elementToBeClickable(btnCheckout));
+            ((org.openqa.selenium.JavascriptExecutor) driver)
+                    .executeScript("arguments[0].click();", retryBtn);
+            wait.until(ExpectedConditions.urlContains("checkout-step-one.html"));
+        }
     }
 
     // Checks whether a product with this exact name is listed on the cart page
     public boolean isProductPresent(String productName) {
         List<WebElement> items;
         try {
-          
+
             items = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
                     By.className("inventory_item_name")
             ));
         } catch (Exception e) {
-            return false; 
+            return false;
         }
-
         return items.stream().anyMatch(e -> e.getText().equalsIgnoreCase(productName));
     }
- // Same slug logic as HomePage.addToCartButton, but SauceDemo's cart-page
- // remove buttons use a "remove-" id prefix instead of "add-to-cart-".
- private By removeButton(String productName) {
-     String id = "remove-" +
-             productName.toLowerCase()
-                     .replace(" ", "-")
-                     .replace("(", "")
-                     .replace(")", "");
-     return By.id(id);
- }
 
- public void removeProductFromCart(String productName) {
-     By btnLocator = removeButton(productName);
-     WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(btnLocator));
-     btn.click();
+    // Same slug logic as HomePage.addToCartButton, but SauceDemo's cart-page
+    // remove buttons use a "remove-" id prefix instead of "add-to-cart-".
+    private By removeButton(String productName) {
+        String id = "remove-" +
+                productName.toLowerCase()
+                        .replace(" ", "-")
+                        .replace("(", "")
+                        .replace(")", "");
+        return By.id(id);
+    }
 
-     try {
-         // Confirms the item's row (and its Remove button) actually left the DOM.
-         wait.until(ExpectedConditions.invisibilityOfElementLocated(btnLocator));
-     } catch (org.openqa.selenium.TimeoutException firstAttemptFailed) {
-         WebElement retryBtn = wait.until(ExpectedConditions.presenceOfElementLocated(btnLocator));
-         ((org.openqa.selenium.JavascriptExecutor) driver)
-                 .executeScript("arguments[0].click();", retryBtn);
-         wait.until(ExpectedConditions.invisibilityOfElementLocated(btnLocator));
-     }
- }
+    public void removeProductFromCart(String productName) {
+        By btnLocator = removeButton(productName);
+        WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(btnLocator));
+        btn.click();
+        try {
+            // Confirms the item's row (and its Remove button) actually left the DOM.
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(btnLocator));
+        } catch (org.openqa.selenium.TimeoutException firstAttemptFailed) {
+            WebElement retryBtn = wait.until(ExpectedConditions.presenceOfElementLocated(btnLocator));
+            ((org.openqa.selenium.JavascriptExecutor) driver)
+                    .executeScript("arguments[0].click();", retryBtn);
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(btnLocator));
+        }
+    }
 
- // Number of product rows currently listed on the cart page.
- public int getCartItemCount() {
-     try {
-         return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                 By.className("inventory_item_name")
-         )).size();
-     } catch (Exception e) {
-         return 0;
-     }
- }
+    // Number of product rows currently listed on the cart page.
+    public int getCartItemCount() {
+        try {
+            return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                    By.className("inventory_item_name")
+            )).size();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }
